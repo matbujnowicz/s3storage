@@ -47,6 +47,7 @@ func (c *PostgresClient) CreateBucket(bucket *models.Bucket) error {
 }
 
 func (c *PostgresClient) CreateObject(object *models.Object) error {
+	// check if bucket on which we want to create object exists
 	if err := c.Db.Where("name = ?", object.Bucket).First(&models.Bucket{}).Error; err != nil {
 		return err
 	}
@@ -61,6 +62,7 @@ func (c *PostgresClient) ListObjects(objects *[]models.Object, params ListParams
 	tx := c.Db.Where("bucket = ?", params.BucketName)
 
 	if params.Marker != "" {
+		// to work with our marker object we need to find its ID
 		markerObject := models.Object{}
 		if err := tx.Where("key = ?", params.Marker).First(&markerObject).Error; err != nil {
 			return err

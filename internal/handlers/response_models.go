@@ -7,16 +7,20 @@ import (
 )
 
 func xmlError(c *gin.Context, code int, message string, err error) {
+	errMessage := ""
+	if err != nil {
+		errMessage = err.Error()
+	}
 	c.XML(code, Error{
 		Message: message,
-		Error:   err.Error(),
+		Error:   errMessage,
 		Code:    code,
 	})
 }
 
 type Error struct {
 	Message string
-	Error   string
+	Error   string `xml:",omitempty"`
 	Code    int
 }
 

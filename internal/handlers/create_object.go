@@ -44,8 +44,7 @@ func CreateObject(c *gin.Context) {
 		return
 	}
 
-	err = writeFile(body, bucketName, objectKey)
-	if err != nil {
+	if err := writeFile(body, bucketName, objectKey); err != nil {
 		// if saving file for an object did not succeed we should remove previously created database entry for the object
 		if deletionErr := db.DbClient.Delete(&object); deletionErr != nil {
 			xmlError(c, http.StatusInternalServerError, "file saving and record deletion failed", deletionErr)
