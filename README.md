@@ -2,7 +2,7 @@
 AWS S3 compatible file storage service created with GO and PostgreSQL.
 The service uses the following data model:
 ![database schema](schema.png)
-to perform S3 like functionalities:
+The service enables three actions:
 - create a bucket - creates a new bucket in buckets table.
 - create an object (in a bucket) - saves file to the disc and saves metadata about the file in the objects table.
 - list objects - enables querying objects information for a given bucket.
@@ -15,9 +15,13 @@ to perform S3 like functionalities:
 
 ### Start project
 Prerequisites: to start the project you need to have Docker installed.
-Change `.env.example` to `.env`
-To run the server open terminal and type: `docker compose up`
-The server should be running on `localhost:8080`
+
+
+1. Change `.env.example` to `.env`
+2. To run the server open terminal and type: `docker compose up`
+3. The server should be running on `localhost:8080`
+
+
 If you want to restart the database type in terminal: `docker compose down --volumes`
 
 ### TODOs
