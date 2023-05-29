@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +14,7 @@ func CreateBucket(c *gin.Context) {
 	bucket := models.Bucket{Name: bucketName}
 
 	if err := db.DbClient.CreateBucket(&bucket); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": fmt.Sprintf("bucket creation resulted in error: %v", err),
-		})
+		xmlError(c, http.StatusInternalServerError, "bucket creation failed", err)
 		return
 	}
 

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,17 +9,38 @@ import (
 )
 
 func ListObjects(c *gin.Context) {
-	params := db.ListParams{BucketName: c.Param("bucket"), Marker: c.Query("marker"), Max: c.Query("max-keys"), Prefix: c.Query("prefix")}
+	params := db.ListParams{
+		BucketName: c.Param("bucket"),
+		Marker:     c.Query("marker"),
+		Max:        c.Query("max-keys"),
+		Prefix:     c.Query("prefix"),
+	}
 
 	var objects []models.Object
 
 	if err := db.DbClient.ListObjects(&objects, params); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": fmt.Sprintf("listing objects resulted in error: %v", err),
-		})
+		xmlError(c, http.StatusInternalServerError, "listing objects failed", err)
 		return
 	}
 
-	// TODO: format message response accordingly
-	c.JSON(http.StatusOK, objects)
+	var contents []Contents
+	for _, object := range objects {
+		contents = append(contents, Contents{
+			Key:          object.Key,
+			LastModified: object.UpdatedAt,
+			ETag:         object.ETag,
+			Size:         object.Size,
+		})
+	}
+
+	response := ListBucketResult{
+		Name:        params.BucketName,
+		Prefix:      params.Prefix,
+		Marker:      params.Marker,
+		MaxKeys:     params.Max,
+		IsTruncated: false,
+		Contents:    contents,
+	}
+
+	c.XML(http.StatusOK, response)
 }

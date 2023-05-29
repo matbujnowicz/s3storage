@@ -19,9 +19,7 @@ func CreateObject(c *gin.Context) {
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("reading form file failed with error: %v", err),
-		})
+		xmlError(c, http.StatusBadRequest, "reading file body failed", err)
 		return
 	}
 
@@ -29,20 +27,16 @@ func CreateObject(c *gin.Context) {
 	if ok {
 		actualMd5 := calculateMD5Digest(body)
 		if md5List[0] != actualMd5 {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "provided Content-MD5 value is different than calculated one",
-			})
+			xmlError(c, http.StatusInternalServerError, "provided Content-MD5 value is different than calculated one", nil)
 			return
 		}
 	}
 
 	eTag := calculateEtag(body)
-	object := models.Object{Key: objectKey, Bucket: bucketName, ETag: eTag}
+	object := models.Object{Key: objectKey, Bucket: bucketName, ETag: eTag, Size: len(body)}
 
 	if err := db.DbClient.CreateObject(&object); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": fmt.Sprintf("object creation resulted in error: %v", err),
-		})
+		xmlError(c, http.StatusInternalServerError, "object creation failed", err)
 		return
 	}
 
@@ -50,20 +44,15 @@ func CreateObject(c *gin.Context) {
 	if err != nil {
 		// if saving file for an object did not succeed we should remove previously created database entry for the object
 		if deletionErr := db.DbClient.Delete(&object); deletionErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": fmt.Sprintf("file saving resulted in error: %v and record deletion resulted in error: %v", err, deletionErr),
-			})
+			xmlError(c, http.StatusInternalServerError, "file saving and record deletion failed", deletionErr)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": fmt.Sprintf("file saving resulted in error: %v", err),
-		})
+		xmlError(c, http.StatusInternalServerError, "file saving failed", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"ETag": eTag,
-	})
+	c.Header("ETag", eTag)
+	c.Status(http.StatusOK)
 }
 
 func calculateEtag(body []byte) string {
