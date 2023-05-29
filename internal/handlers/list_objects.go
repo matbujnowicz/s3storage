@@ -18,7 +18,6 @@ func ListObjects(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": fmt.Sprintf("listing objects resulted in error: %v", err),
 		})
-		c.Abort()
 		return
 	}
 

@@ -14,15 +14,12 @@ func CreateBucket(c *gin.Context) {
 
 	bucket := models.Bucket{Name: bucketName}
 
-	if err := db.DbClient.Create(&bucket); err != nil {
+	if err := db.DbClient.CreateBucket(&bucket); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": fmt.Sprintf("bucket creation resulted in error: %v", err),
 		})
-		c.Abort()
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("Bucket %v created", bucketName),
-	})
+	c.Status(http.StatusOK)
 }

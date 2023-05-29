@@ -10,7 +10,9 @@ type ListParams struct {
 }
 
 type Client interface {
-	Create(model interface{}) error
+	Delete(model interface{}) error
+	CreateBucket(bucket *models.Bucket) error
+	CreateObject(object *models.Object) error
 	ListObjects(objects *[]models.Object, params ListParams) error
 }
 

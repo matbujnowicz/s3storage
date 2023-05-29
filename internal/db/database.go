@@ -39,8 +39,19 @@ func Connect() {
 	}
 }
 
-func (c *PostgresClient) Create(model interface{}) error {
-	if err := c.Db.Create(model).Error; err != nil {
+func (c *PostgresClient) CreateBucket(bucket *models.Bucket) error {
+	if err := c.Db.Create(bucket).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *PostgresClient) CreateObject(object *models.Object) error {
+	if err := c.Db.Where("name = ?", object.Bucket).First(&models.Bucket{}).Error; err != nil {
+		return err
+	}
+
+	if err := c.Db.Create(object).Error; err != nil {
 		return err
 	}
 	return nil
@@ -71,6 +82,13 @@ func (c *PostgresClient) ListObjects(objects *[]models.Object, params ListParams
 	}
 
 	if err := tx.Find(objects).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *PostgresClient) Delete(model interface{}) error {
+	if err := c.Db.Delete(model).Error; err != nil {
 		return err
 	}
 	return nil
