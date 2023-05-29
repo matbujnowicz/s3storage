@@ -23,6 +23,11 @@ func ListObjects(c *gin.Context) {
 		return
 	}
 
+	response := generateListBucketResult(objects, params)
+	c.XML(http.StatusOK, response)
+}
+
+func generateListBucketResult(objects []models.Object, params db.ListParams) ListBucketResult {
 	var contents []Contents
 	for _, object := range objects {
 		contents = append(contents, Contents{
@@ -33,7 +38,7 @@ func ListObjects(c *gin.Context) {
 		})
 	}
 
-	response := ListBucketResult{
+	return ListBucketResult{
 		Name:        params.BucketName,
 		Prefix:      params.Prefix,
 		Marker:      params.Marker,
@@ -41,6 +46,4 @@ func ListObjects(c *gin.Context) {
 		IsTruncated: false,
 		Contents:    contents,
 	}
-
-	c.XML(http.StatusOK, response)
 }

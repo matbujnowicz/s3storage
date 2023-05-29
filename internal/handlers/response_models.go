@@ -29,9 +29,9 @@ type Contents struct {
 
 type ListBucketResult struct {
 	Name        string
-	Prefix      string
-	Marker      string
-	MaxKeys     string
+	Prefix      string `xml:",omitempty"`
+	Marker      string `xml:",omitempty"`
+	MaxKeys     string `xml:",omitempty"`
 	IsTruncated bool
 	Contents    []Contents
 }
