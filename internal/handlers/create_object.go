@@ -7,11 +7,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/matbujnowicz/s3storage/internal/db"
 	"github.com/matbujnowicz/s3storage/internal/models"
 )
+
+const contentMd5Header = "Content-Md5"
 
 func CreateObject(c *gin.Context) {
 	bucketName := c.Param("bucket")
@@ -23,7 +27,7 @@ func CreateObject(c *gin.Context) {
 		return
 	}
 
-	md5List, ok := c.Request.Header["Content-Md5"]
+	md5List, ok := c.Request.Header[contentMd5Header]
 	if ok {
 		actualMd5 := calculateMD5Digest(body)
 		if md5List[0] != actualMd5 {
@@ -40,7 +44,7 @@ func CreateObject(c *gin.Context) {
 		return
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("uploads/%v/%v", bucketName, objectKey), body, 0644)
+	err = writeFile(body, bucketName, objectKey)
 	if err != nil {
 		// if saving file for an object did not succeed we should remove previously created database entry for the object
 		if deletionErr := db.DbClient.Delete(&object); deletionErr != nil {
@@ -53,6 +57,16 @@ func CreateObject(c *gin.Context) {
 
 	c.Header("ETag", eTag)
 	c.Status(http.StatusOK)
+}
+
+func writeFile(body []byte, bucketName string, objectKey string) error {
+	path := fmt.Sprintf("uploads/%v/%v", bucketName, objectKey)
+
+	err := os.MkdirAll(filepath.Dir(path), 0755)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, body, 0644)
 }
 
 func calculateEtag(body []byte) string {
