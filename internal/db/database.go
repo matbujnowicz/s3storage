@@ -11,13 +11,13 @@ import (
 	"gorm.io/driver/postgres"
 )
 
-type Dbinstance struct {
+type PostgresClient struct {
 	Db *gorm.DB
 }
 
-var DB Dbinstance
+var DbClient PostgresClient
 
-func ConnectDb() {
+func Connect() {
 	dsn := fmt.Sprintf(
 		"host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Asia/Shanghai",
 		os.Getenv("DB_USER"),
@@ -35,7 +35,15 @@ func ConnectDb() {
 
 	db.AutoMigrate(&models.Bucket{}, &models.Object{})
 
-	DB = Dbinstance{
+	DbClient = PostgresClient{
 		Db: db,
 	}
+}
+
+func Create(c *PostgresClient, model interface{}) {
+	c.Db.Create(model)
+}
+
+func List(c *PostgresClient, models interface{}) {
+	c.Db.Find(models)
 }
