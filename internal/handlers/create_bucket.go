@@ -16,8 +16,9 @@ func CreateBucket(c *gin.Context) {
 
 	if err := db.DbClient.Create(&bucket); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": fmt.Sprintf("bucket creation resulted in error: %v", err),
+			"error": fmt.Sprintf("bucket creation resulted in error: %v", err),
 		})
+		c.Abort()
 		return
 	}
 
