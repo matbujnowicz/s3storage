@@ -15,11 +15,9 @@ type PostgresClient struct {
 	Db *gorm.DB
 }
 
-var DbClient PostgresClient
-
 func Connect() {
 	dsn := fmt.Sprintf(
-		"host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Asia/Shanghai",
+		"host=db user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=Europe/Berlin",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
@@ -35,15 +33,21 @@ func Connect() {
 
 	db.AutoMigrate(&models.Bucket{}, &models.Object{})
 
-	DbClient = PostgresClient{
+	DbClient = &PostgresClient{
 		Db: db,
 	}
 }
 
-func Create(c *PostgresClient, model interface{}) {
-	c.Db.Create(model)
+func (c *PostgresClient) Create(model interface{}) error {
+	if err := c.Db.Create(model).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-func List(c *PostgresClient, models interface{}) {
-	c.Db.Find(models)
+func (c *PostgresClient) List(models []interface{}) error {
+	if err := c.Db.Find(models).Error; err != nil {
+		return err
+	}
+	return nil
 }
