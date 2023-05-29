@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/matbujnowicz/s3storage/internal/models"
 	"gorm.io/gorm"
@@ -45,8 +46,31 @@ func (c *PostgresClient) Create(model interface{}) error {
 	return nil
 }
 
-func (c *PostgresClient) List(models []interface{}) error {
-	if err := c.Db.Find(models).Error; err != nil {
+func (c *PostgresClient) ListObjects(objects *[]models.Object, params ListParams) error {
+	tx := c.Db.Where("bucket = ?", params.BucketName)
+
+	if params.Marker != "" {
+		markerObject := models.Object{}
+		if err := tx.Where("key = ?", params.Marker).First(&markerObject).Error; err != nil {
+			return err
+		}
+
+		tx = c.Db.Where("bucket = ?", params.BucketName).Where("id > ?", markerObject.ID)
+	}
+
+	if params.Prefix != "" {
+		tx.Where("key LIKE ?", params.Prefix+"%")
+	}
+
+	if params.Max != "" {
+		maxInt, err := strconv.Atoi(params.Max)
+		if err != nil || maxInt < 1 {
+			return fmt.Errorf("max-keys value of %v is invalid", params.Max)
+		}
+		tx.Limit(maxInt)
+	}
+
+	if err := tx.Find(objects).Error; err != nil {
 		return err
 	}
 	return nil

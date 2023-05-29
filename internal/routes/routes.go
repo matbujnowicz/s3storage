@@ -8,5 +8,5 @@ import (
 func SetupRoutes(r *gin.Engine) {
 	r.PUT("/:bucket", handlers.CreateBucket)
 	r.PUT("/:bucket/:key", handlers.CreateObject)
-
+	r.GET("/:bucket", handlers.ListObjects)
 }

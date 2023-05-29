@@ -10,14 +10,6 @@ import (
 )
 
 func CreateObject(c *gin.Context) {
-	// ensure that required headers for create object are present
-	contentMD5 := c.GetHeader("Content-MD5")
-	if contentMD5 != "Content-MD5" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content-MD5 header missing"})
-		c.Abort()
-		return
-	}
-
 	bucketName := c.Param("bucket")
 	// TODO: should I check if this bucket exists?
 	objectKey := c.Param("key")
@@ -39,7 +31,8 @@ func CreateObject(c *gin.Context) {
 		return
 	}
 
-	object := models.Object{Key: objectKey, Bucket: bucketName}
+	// TODO: save etag
+	object := models.Object{Key: objectKey, Bucket: bucketName, FileName: file.Filename}
 
 	if err := db.DbClient.Create(&object); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -49,6 +42,8 @@ func CreateObject(c *gin.Context) {
 		return
 	}
 
+	// TODO: content md52 check?
+	// TODO: return etag
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("object %v created", objectKey),
 	})
